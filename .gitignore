@@ -31,6 +31,7 @@ coverage/
 
 # AI agent skills / local tooling
 .agents/
+skills-lock.json
 
 # IDE / OS
 .idea/

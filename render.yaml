@@ -3,6 +3,7 @@ databases:
     databaseName: buybound
     user: buybound
     plan: free
+    region: oregon
     postgresMajorVersion: '16'
 
 services:
@@ -10,6 +11,7 @@ services:
     name: buybound-backend
     runtime: docker
     plan: free
+    region: oregon
     rootDir: backend
     dockerfilePath: ./Dockerfile
     healthCheckPath: /api/health
@@ -58,6 +60,7 @@ services:
   - type: web
     name: buybound-frontend
     runtime: static
+    region: oregon
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
@@ -72,6 +75,7 @@ services:
   - type: workflow
     name: buybound-workflows
     runtime: node
+    region: oregon
     rootDir: workflows
     buildCommand: npm install && npm run build
     startCommand: npm run start
