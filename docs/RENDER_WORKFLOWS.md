@@ -165,3 +165,4 @@ node dist/cli.js forensics
 | **Tasks Defined as Standard Functions** | `parallelStoreScanTask`, `aiForensicsTask`, `sellerReputationTask`, `settlementTask`. | [workflows/src/tasks/](file:///f:/BuyBound-main/BuyBound/workflows/src/tasks/) |
 | **Concurrent Instance Dispatch (Fan-out)** | Workflows fan out parallel store scans and simultaneous AI forensics & seller trust checks across isolated instances. | [overnightDropWorkflow.ts](file:///f:/BuyBound-main/BuyBound/workflows/src/workflows/overnightDropWorkflow.ts) |
 | **Render Blueprint Integration** | Registered as a native `type: workflow` service in `render.yaml`. | [render.yaml](file:///f:/BuyBound-main/BuyBound/render.yaml) |
+

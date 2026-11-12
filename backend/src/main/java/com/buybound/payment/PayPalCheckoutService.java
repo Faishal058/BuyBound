@@ -157,6 +157,9 @@ public class PayPalCheckoutService {
       return "http://localhost:5173";
     }
     String trimmed = raw.trim().replaceAll("/+$", "");
+    if (!trimmed.contains(".") && !trimmed.contains("localhost")) {
+      trimmed = trimmed + ".onrender.com";
+    }
     if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
       return "https://" + trimmed;
     }

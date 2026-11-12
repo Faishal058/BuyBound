@@ -20,11 +20,19 @@ export class ApiError extends Error {
 function baseUrl(): string {
   const raw = import.meta.env.VITE_API_BASE_URL as string | undefined;
   if (raw && raw.trim().length > 0) {
-    const trimmed = raw.trim().replace(/\/+$/, '');
+    let trimmed = raw.trim().replace(/\/+$/, '');
+    // If Render or Docker provided service name without domain (e.g. "buybound-backend")
+    if (!trimmed.includes('.') && !trimmed.includes('localhost')) {
+      trimmed = `${trimmed}.onrender.com`;
+    }
     if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
       return trimmed;
     }
     return `https://${trimmed}`;
+  }
+  // When hosted on Render, auto-detect the backend service URL
+  if (typeof window !== 'undefined' && window.location.hostname.endsWith('.onrender.com')) {
+    return 'https://buybound-backend.onrender.com';
   }
   return 'http://localhost:8080';
 }

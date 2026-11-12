@@ -39,15 +39,9 @@ services:
       - key: AI_BASE_URL
         value: https://api.groq.com/openai/v1
       - key: FRONTEND_URL
-        fromService:
-          type: web
-          name: buybound-frontend
-          property: host
+        value: https://buybound-frontend.onrender.com
       - key: ALLOWED_ORIGINS
-        fromService:
-          type: web
-          name: buybound-frontend
-          property: host
+        value: https://buybound-frontend.onrender.com,http://localhost:5173
       - key: BUYBOUND_POLLER_ENABLED
         value: 'true'
       - key: CHANNEL3_API_KEY
@@ -73,10 +67,7 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_BASE_URL
-        fromService:
-          type: web
-          name: buybound-backend
-          property: host
+        value: https://buybound-backend.onrender.com
 
   - type: workflow
     name: buybound-workflows
@@ -86,10 +77,7 @@ services:
     startCommand: npm run start
     envVars:
       - key: BACKEND_URL
-        fromService:
-          type: web
-          name: buybound-backend
-          property: host
+        value: https://buybound-backend.onrender.com
       - key: CHANNEL3_BASE_URL
         value: https://api.trychannel3.com/v1
       - key: CHANNEL3_API_KEY

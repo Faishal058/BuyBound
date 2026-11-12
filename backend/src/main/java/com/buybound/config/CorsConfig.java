@@ -70,6 +70,9 @@ public class CorsConfig {
       return trimmed;
     }
     trimmed = trimmed.replaceAll("/+$", "");
+    if (!trimmed.contains(".") && !trimmed.contains("localhost")) {
+      trimmed = trimmed + ".onrender.com";
+    }
     if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
       return "https://" + trimmed;
     }

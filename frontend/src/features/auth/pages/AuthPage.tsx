@@ -184,18 +184,46 @@ export function AuthPage({ initialTab = 'signin' }: AuthPageProps) {
   );
 
   const handlePayPalOAuthLogin = async () => {
-    if (!paypalConfigured && !oauthAuthorizeUrl) {
-      setErrorMsg('PayPal Client ID is not configured on the backend (.env PAYPAL_CLIENT_ID).');
-      return;
-    }
     setLoading(true);
     setErrorMsg(null);
     try {
-      const res = await paypalApi.startLogin();
-      if (res.setupTokenId) {
-        sessionStorage.setItem('buybound_pending_login_setup_token', res.setupTokenId);
+      let authUrl = oauthAuthorizeUrl;
+      if (!paypalConfigured || !authUrl) {
+        try {
+          const cfg = await paypalApi.config();
+          setPaypalConfigured(Boolean(cfg.configured));
+          if (cfg.oauthAuthorizeUrl) {
+            authUrl = cfg.oauthAuthorizeUrl;
+            setOauthAuthorizeUrl(cfg.oauthAuthorizeUrl);
+          }
+        } catch {
+          // Continue to attempt startLogin
+        }
       }
-      window.location.assign(res.approvalUrl);
+
+      try {
+        const res = await paypalApi.startLogin();
+        if (res.setupTokenId) {
+          sessionStorage.setItem('buybound_pending_login_setup_token', res.setupTokenId);
+        }
+        if (res.approvalUrl) {
+          window.location.assign(res.approvalUrl);
+          return;
+        }
+      } catch (loginErr: unknown) {
+        // Fallback to OAuth authorization URL if startLogin encounters a Vault policy issue
+        if (authUrl) {
+          window.location.assign(authUrl);
+          return;
+        }
+        throw loginErr;
+      }
+
+      if (authUrl) {
+        window.location.assign(authUrl);
+      } else {
+        throw new Error('PayPal Client ID is not configured on the backend.');
+      }
     } catch (err: unknown) {
       setErrorMsg(toApiError(err).message);
       setLoading(false);
@@ -407,7 +435,7 @@ export function AuthPage({ initialTab = 'signin' }: AuthPageProps) {
 
             <button
               type="button"
-              disabled={loading || (!paypalConfigured && !oauthAuthorizeUrl)}
+              disabled={loading}
               onClick={() => void handlePayPalOAuthLogin()}
               className="mb-4 flex w-full min-h-[46px] items-center justify-center gap-2 rounded-full bg-[#0070BA] hover:bg-[#005EA6] disabled:opacity-50 px-5 text-sm font-semibold text-white shadow-sm transition-colors"
             >
