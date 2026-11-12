@@ -11,14 +11,14 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * Tightened CORS configuration for local development and Render production deployments.
- * Configurable via CORS_ALLOWED_ORIGINS / APP_CORS_ORIGINS and APP_FRONTEND_URL.
+ * Configurable via ALLOWED_ORIGINS / CORS_ALLOWED_ORIGINS / APP_CORS_ORIGINS and FRONTEND_URL / APP_FRONTEND_URL.
  */
 @Configuration
 public class CorsConfig {
-  @Value("${app.cors.allowed-origins:${CORS_ALLOWED_ORIGINS:${APP_CORS_ORIGINS:http://localhost:5173,http://localhost:3000}}}")
+  @Value("${ALLOWED_ORIGINS:${app.cors.allowed-origins:${CORS_ALLOWED_ORIGINS:${APP_CORS_ORIGINS:http://localhost:5173,http://localhost:3000,https://*.onrender.com}}}}")
   private String allowedOrigins;
 
-  @Value("${app.frontend-url:${APP_FRONTEND_URL:}}")
+  @Value("${FRONTEND_URL:${app.frontend-url:${APP_FRONTEND_URL:}}}")
   private String frontendUrl;
 
   @Bean
@@ -33,6 +33,10 @@ public class CorsConfig {
     String normalizedFrontend = normalizeOrigin(frontendUrl);
     if (!normalizedFrontend.isEmpty() && !resolved.contains("*")) {
       resolved.add(normalizedFrontend);
+    }
+    if (!resolved.contains("*")) {
+      resolved.add("http://localhost:5173");
+      resolved.add("https://*.onrender.com");
     }
     if (resolved.isEmpty()) {
       resolved.add("http://localhost:5173");

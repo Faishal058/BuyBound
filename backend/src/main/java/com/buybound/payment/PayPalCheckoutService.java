@@ -132,7 +132,7 @@ public class PayPalCheckoutService {
       Optional<UserProfileService> userProfileService,
       @Value("${app.payments.mode:sandbox}") String paymentsMode,
       @Value("${app.paypal.client-id:${PAYPAL_CLIENT_ID:}}") String configuredClientId,
-      @Value("${app.frontend-url:http://localhost:5173}") String frontendUrl) {
+      @Value("${FRONTEND_URL:${app.frontend-url:${APP_FRONTEND_URL:http://localhost:5173}}}") String frontendUrl) {
     this.payPalAdapter = payPalAdapter;
     this.intents = intents;
     this.decisions = decisions;

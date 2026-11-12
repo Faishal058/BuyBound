@@ -57,7 +57,7 @@ public class PayPalPaymentAdapter implements PaymentAdapter {
       @Value("${app.paypal.base-url:https://api-m.sandbox.paypal.com}") String baseUrl,
       @Value("${app.paypal.client-id:${PAYPAL_CLIENT_ID:}}") String clientId,
       @Value("${app.paypal.client-secret:${PAYPAL_CLIENT_SECRET:}}") String clientSecret,
-      @Value("${app.frontend-url:http://localhost:5173}") String frontendUrl) {
+      @Value("${FRONTEND_URL:${app.frontend-url:${APP_FRONTEND_URL:http://localhost:5173}}}") String frontendUrl) {
     this.baseUrl = baseUrl;
     this.clientId = clientId;
     this.clientSecret = clientSecret;
