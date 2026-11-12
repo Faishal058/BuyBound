@@ -37,7 +37,6 @@
 | ⚡ **Render Workflows Spec** | **[docs/RENDER_WORKFLOWS.md](docs/RENDER_WORKFLOWS.md)** | Distributed task engine (`@renderinc/sdk/workflows`). |
 | 🏛️ **System Architecture** | **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** | CISO defense-in-depth, threat models, and data flow. |
 | 💳 **PayPal Payment Flow** | **[docs/PAYMENT_FLOW.md](docs/PAYMENT_FLOW.md)** | Vault v3 tokens, Orders v2 capture, and state machines. |
-| 🎬 **Demo Walkthrough** | **[docs/DEMO_WALKTHROUGH.md](docs/DEMO_WALKTHROUGH.md)** | Step-by-step video script and judge test instructions. |
 | 📑 **API Documentation** | **[docs/API.md](docs/API.md)** | REST endpoints, request/response models, and auth. |
 
 ---
