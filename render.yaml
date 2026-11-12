@@ -77,3 +77,24 @@ services:
           type: web
           name: buybound-backend
           property: host
+
+  - type: workflow
+    name: buybound-workflows
+    runtime: node
+    rootDir: workflows
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: BACKEND_URL
+        fromService:
+          type: web
+          name: buybound-backend
+          property: host
+      - key: CHANNEL3_BASE_URL
+        value: https://api.trychannel3.com/v1
+      - key: CHANNEL3_API_KEY
+        sync: false
+      - key: AI_API_KEY
+        sync: false
+      - key: RENDER_API_KEY
+        sync: false

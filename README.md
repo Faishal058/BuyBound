@@ -43,7 +43,7 @@ BuyBound implements defense-in-depth across every tier:
 | **AG Grid Community v32** | Interactive financial & AI telemetry command center | **3 live grids** powered by `ag-grid-react` & `ag-grid-community` (`^32.3.9`, MIT): (1) `OvernightOfferAuditGrid` on `/app/offers` & `/app/watches` with inline Hold Approve/Decline and NL AI Grid Copilot (`setFilterModel` / `applyColumnState`), (2) `AuditPage` activity log on `/audit`, and (3) `IntentsTable` on `/watches/:id`. |
 | **Channel3 Commerce API** | Multi-merchant product & price intelligence | Live `/v1/search`, `/v1/lookup`, and `/v0/price-tracking/history` discovery enriched with `Channel3SearchService.resolveMerchantReputation` for tier-1 vs. risky/unverified merchant verification. |
 | **APIMatic / OpenAPI 3** | Contract-first schema & CI enforcement | `contracts/openapi.yaml`, `contracts/guardian-policy.schema.json`, and `contracts/postman_collection.json` validated in CI via `openapi-spec-validator`. |
-| **Render Blueprint** | Multi-service cloud hosting | Root `render.yaml` provisions managed PostgreSQL 16 (`buybound-db`), Dockerized Spring Boot 3 API (`buybound-backend`), and Vite static frontend (`buybound-frontend`) with automatic `https://` API normalization and `APP_FRONTEND_URL` callback injection. |
+| **Render Blueprint & Workflows** | Cloud orchestration & distributed AI agent tasks | Root `render.yaml` provisions PostgreSQL 16 (`buybound-db`), Docker API (`buybound-backend`), Vite UI (`buybound-frontend`), and a dedicated **Render Workflows** service (`buybound-workflows`) orchestrating distributed overnight price drop scans, AI prompt injection forensics, and settlement across concurrent instances using `@renderinc/sdk/workflows` ([docs/RENDER_WORKFLOWS.md](docs/RENDER_WORKFLOWS.md)). |
 
 ---
 
@@ -78,6 +78,10 @@ npm run dev
 - **Frontend type-check, production bundle & Vitest suite (`frontend/`):**
   ```bash
   npm run build && npm test -- --run
+  ```
+- **Render Workflows distributed task engine & AI forensics test suite (`workflows/`):**
+  ```bash
+  cd workflows && npm install && npm test
   ```
 
 ---

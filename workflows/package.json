@@ -1,0 +1,33 @@
+{
+  "name": "buybound-workflows",
+  "version": "1.0.0",
+  "description": "Render Workflows orchestration engine for BuyBound distributed AI agents and overnight drop hunting",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc -w",
+    "hunt": "node dist/cli.js hunt",
+    "drop": "node dist/cli.js drop",
+    "test": "node --test dist/**/*.test.js"
+  },
+  "keywords": [
+    "render",
+    "render-workflows",
+    "buybound",
+    "ai-agents",
+    "distributed-tasks",
+    "paypal"
+  ],
+  "author": "BuyBound Team",
+  "license": "MIT",
+  "dependencies": {
+    "@renderinc/sdk": "^1.7.0",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}
