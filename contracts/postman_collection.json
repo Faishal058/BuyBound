@@ -1,0 +1,492 @@
+{
+  "info": {
+    "name": "BuyBound API & PayPal Sandbox Collection",
+    "_postman_id": "b3e0d84a-9b44-4e2e-bf72-881cb3d951a0",
+    "description": "Production-ready Postman collection for BuyBound: autonomous shopping agent guardrailed by deterministic Guardian policies and PayPal Sandbox integration.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "paypalBaseUrl",
+      "value": "https://api-m.sandbox.paypal.com",
+      "type": "string"
+    },
+    {
+      "key": "watchId",
+      "value": "00000000-0000-0000-0000-000000000001",
+      "type": "string"
+    },
+    {
+      "key": "intentId",
+      "value": "00000000-0000-0000-0000-000000000002",
+      "type": "string"
+    },
+    {
+      "key": "paypalClientId",
+      "value": "PAYPAL_CLIENT_ID",
+      "type": "string"
+    },
+    {
+      "key": "paypalClientSecret",
+      "value": "PAYPAL_CLIENT_SECRET",
+      "type": "string"
+    },
+    {
+      "key": "paypalAccessToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "System & Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health"]
+            },
+            "description": "Returns status UP when the service is healthy."
+          }
+        },
+        {
+          "name": "Public Runtime Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/info",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "info"]
+            },
+            "description": "Non-sensitive runtime info: paymentsMode and discoveryMode."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Watches & Mandates",
+      "item": [
+        {
+          "name": "List Watches",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/watches",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "watches"]
+            }
+          }
+        },
+        {
+          "name": "Create Watch & Mandate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productName\": \"Sony WH-1000XM5 Wireless Headphones\",\n  \"productId\": \"sony-wh-1000xm5\",\n  \"sku\": \"WH1000XM5/B\",\n  \"variant\": \"Black\",\n  \"merchantId\": \"bestbuy\",\n  \"currency\": \"USD\",\n  \"targetPrice\": \"349.99\",\n  \"maxUnitPrice\": \"360.00\",\n  \"maxTotal\": \"380.00\",\n  \"maxQuantity\": 1,\n  \"allowedMerchantIds\": [\"bestbuy\", \"amazon\", \"target\"],\n  \"maxPurchasesPerDay\": 2,\n  \"offerMaxAgeSeconds\": 3600,\n  \"newMerchantBehavior\": \"HOLD\",\n  \"requireHumanApprovalAbove\": \"370.00\",\n  \"maxWeeklySpend\": \"500.00\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/watches",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "watches"]
+            }
+          }
+        },
+        {
+          "name": "Get Watch",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/{{watchId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "watches", "{{watchId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Active Mandate",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/{{watchId}}/mandate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "watches", "{{watchId}}", "mandate"]
+            }
+          }
+        },
+        {
+          "name": "Pause Watch",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/{{watchId}}/pause",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "watches", "{{watchId}}", "pause"]
+            }
+          }
+        },
+        {
+          "name": "Revoke Watch",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/{{watchId}}/revoke",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "watches", "{{watchId}}", "revoke"]
+            }
+          }
+        },
+        {
+          "name": "Emergency Kill Switch (Disable Agent Buying)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/kill-switch",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "watches", "kill-switch"]
+            },
+            "description": "Immediately halts all autonomous buying by revoking all mandates and watches across the system."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Offers & Purchase Intents",
+      "item": [
+        {
+          "name": "Submit Candidate Offer (Evaluates Guardian)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"merchantId\": \"bestbuy\",\n  \"canonicalSku\": \"WH1000XM5/B\",\n  \"variant\": \"Black\",\n  \"quantity\": 1,\n  \"currency\": \"USD\",\n  \"unitPrice\": \"348.00\",\n  \"totalPrice\": \"348.00\",\n  \"source\": \"channel3\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/{{watchId}}/offers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "watches", "{{watchId}}", "offers"]
+            }
+          }
+        },
+        {
+          "name": "List Purchase Intents for Watch",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/watches/{{watchId}}/purchase-intents",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "watches", "{{watchId}}", "purchase-intents"]
+            }
+          }
+        },
+        {
+          "name": "Get Purchase Intent",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchase-intents/{{intentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "purchase-intents", "{{intentId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Guardian Decision",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchase-intents/{{intentId}}/guardian-decision",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "purchase-intents", "{{intentId}}", "guardian-decision"]
+            }
+          }
+        },
+        {
+          "name": "Approve Intent (Human in the Loop)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchase-intents/{{intentId}}/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "purchase-intents", "{{intentId}}", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Capture Intent (PayPal Sandbox Live)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchase-intents/{{intentId}}/capture",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "purchase-intents", "{{intentId}}", "capture"]
+            }
+          }
+        },
+        {
+          "name": "Demo Capture (Stub Mode Only)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchase-intents/{{intentId}}/demo-capture",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "purchase-intents", "{{intentId}}", "demo-capture"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Guardian Policy Playground",
+      "item": [
+        {
+          "name": "Stateless Evaluation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"policy\": {\n    \"mandateId\": \"mandate-demo\",\n    \"version\": 1,\n    \"currency\": \"USD\",\n    \"maxUnitPrice\": \"500.00\",\n    \"maxTotal\": \"500.00\",\n    \"maxQuantity\": 2,\n    \"allowedMerchantIds\": [\"bestbuy\", \"amazon\"],\n    \"maxPurchasesPerDay\": 3,\n    \"offerMaxAgeSeconds\": 3600,\n    \"newMerchantBehavior\": \"HOLD\",\n    \"targetPrice\": \"450.00\"\n  },\n  \"offer\": {\n    \"merchantId\": \"bestbuy\",\n    \"canonicalSku\": \"SKU-123\",\n    \"variant\": \"black\",\n    \"quantity\": 1,\n    \"currency\": \"USD\",\n    \"unitPrice\": \"420.00\",\n    \"totalPrice\": \"420.00\",\n    \"observedAt\": \"2026-10-12T12:00:00Z\",\n    \"source\": \"channel3\",\n    \"evidenceHash\": \"hash123\"\n  },\n  \"context\": {\n    \"purchasesToday\": 0,\n    \"remainingBudget\": \"1000.00\",\n    \"previousUnitPrice\": \"418.00\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/guardian/evaluations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "guardian", "evaluations"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Audit Log",
+      "item": [
+        {
+          "name": "List Audit Events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/audit-events?limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "audit-events"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "eventType",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "correlationId",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "PayPal Webhooks & Direct Sandbox API",
+      "item": [
+        {
+          "name": "Simulate Inbound PayPal Webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "PAYPAL-TRANSMISSION-ID",
+                "value": "trans-12345"
+              },
+              {
+                "key": "PAYPAL-TRANSMISSION-TIME",
+                "value": "2026-10-12T12:00:00Z"
+              },
+              {
+                "key": "PAYPAL-TRANSMISSION-SIG",
+                "value": "sig-test"
+              },
+              {
+                "key": "PAYPAL-CERT-URL",
+                "value": "https://api-m.sandbox.paypal.com/cert"
+              },
+              {
+                "key": "PAYPAL-AUTH-ALGO",
+                "value": "SHA256withRSA"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"WH-EVENT-12345\",\n  \"event_type\": \"PAYMENT.CAPTURE.COMPLETED\",\n  \"resource_type\": \"capture\",\n  \"resource\": {\n    \"id\": \"CAPTURE-98765\",\n    \"status\": \"COMPLETED\",\n    \"amount\": {\n      \"currency_code\": \"USD\",\n      \"value\": \"348.00\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/webhooks/paypal",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "webhooks", "paypal"]
+            }
+          }
+        },
+        {
+          "name": "Direct PayPal Sandbox: Get OAuth Token",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{paypalClientId}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{paypalClientSecret}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "client_credentials",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{paypalBaseUrl}}/v1/oauth2/token",
+              "host": ["{{paypalBaseUrl}}"],
+              "path": ["v1", "oauth2", "token"]
+            }
+          }
+        },
+        {
+          "name": "Direct PayPal Sandbox: Create Order",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{paypalAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "PayPal-Request-Id",
+                "value": "{{$guid}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"intent\": \"CAPTURE\",\n  \"purchase_units\": [\n    {\n      \"reference_id\": \"intent-test-1\",\n      \"amount\": {\n        \"currency_code\": \"USD\",\n        \"value\": \"100.00\"\n      }\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{paypalBaseUrl}}/v2/checkout/orders",
+              "host": ["{{paypalBaseUrl}}"],
+              "path": ["v2", "checkout", "orders"]
+            }
+          }
+        },
+        {
+          "name": "Direct PayPal Sandbox: Create Vault Setup Token",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{paypalAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "PayPal-Request-Id",
+                "value": "{{$guid}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payment_source\": {\n    \"paypal\": {\n      \"usage_type\": \"MERCHANT\",\n      \"experience_context\": {\n        \"return_url\": \"http://localhost:5173/vault/success\",\n        \"cancel_url\": \"http://localhost:5173/vault/cancel\"\n      }\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{paypalBaseUrl}}/v3/vault/setup-tokens",
+              "host": ["{{paypalBaseUrl}}"],
+              "path": ["v3", "vault", "setup-tokens"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

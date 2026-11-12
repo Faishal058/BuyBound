@@ -1,0 +1,47 @@
+/* BuyBound design tokens — single source of truth for the visual system.
+   Warm, premium modern shopping aesthetic:
+   Ivory (#FAF7F2), Coral (#F16B50), Soft Peach (#FBE5DB), Charcoal (#292724), White (#FFFFFF). */
+
+:root {
+  /* Brand */
+  --color-primary: #f16b50;
+  --color-primary-dark: #e0553a;
+  --color-primary-light: #fbe5db;
+  --color-accent: #e26348;
+  --color-accent-light: #fdf2ec;
+
+  /* Semantic (WCAG AA compliant contrast on white and tinted surfaces) */
+  --color-success: #0e7044;
+  --color-success-dot: #16a34a;
+  --color-success-bg: #e8f7ee;
+  --color-warning: #b54708;
+  --color-warning-dot: #d97706;
+  --color-warning-bg: #fff4e5;
+  --color-danger: #c02619;
+  --color-danger-dot: #dc2626;
+  --color-danger-bg: #feeceb;
+  --color-info: #d95a40;
+  --color-info-bg: #fdf2ec;
+
+  /* Surfaces & ink */
+  --color-background: #faf7f2;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f5efeb;
+  --color-border: #eae3db;
+  --color-border-strong: #d8cfc5;
+  --color-text: #292724;
+  --color-text-muted: #5c5751;
+  --color-text-faint: #756e67;
+
+  /* Shape & type */
+  --radius: 14px;
+  --radius-sm: 8px;
+  --radius-lg: 20px;
+  --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(41, 39, 36, 0.04);
+  --shadow-md: 0 16px 40px rgba(241, 107, 80, 0.08), 0 4px 18px rgba(0, 0, 0, 0.03);
+}

@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build output & Vite caches
+dist/
+dist-ssr/
+.vite/
+.vite-temp/
+node_modules/.vite/
+node_modules/.vite-temp/
+*.local
+
+# Environment files (may contain local URLs; never commit secrets)
+.env
+.env.*
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Test / coverage
+coverage/

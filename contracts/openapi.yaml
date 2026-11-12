@@ -1,0 +1,754 @@
+openapi: 3.1.0
+info:
+  title: BuyBound API
+  version: 0.3.0
+  description: >
+    Draft contract for a sandbox-only prototype. Authentication, rate limits and
+    production security controls must be specified before deployment.
+    v0.2 (contract review): intent, mandate and Guardian decision schemas now
+    carry the exact-parameter approval binding required by docs/PAYMENT_FLOW.md
+    (mandate + policy versions, merchant, SKU/variant, quantity, currency,
+    totals, evidence hash, idempotency key). No field here authorizes a payment;
+    only a persisted Guardian ALLOW for the exact intent may do so.
+    v0.3 (implementation): added POST /api/guardian/evaluations (stateless
+    evaluation playground), POST /api/watches/{watchId}/offers (demo affordance
+    standing in for the discovery adapter), POST
+    /api/purchase-intents/{intentId}/demo-capture (stub-mode only, always
+    simulated), and GET /api/info (public runtime info).
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: UP
+  /api/info:
+    get:
+      summary: Public runtime info
+      description: Non-sensitive runtime info for the UI settings page. Never exposes secrets.
+      responses:
+        '200':
+          description: Runtime info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfoResponse'
+  /api/guardian/evaluations:
+    post:
+      summary: Evaluate a policy + offer pair without persisting anything
+      description: >
+        Stateless Guardian evaluation playground. Useful for demos and for
+        verifying policy behavior; nothing is stored.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationRequest'
+      responses:
+        '200':
+          description: Evaluation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationResponse'
+        '400':
+          description: Invalid request
+  /api/watches:
+    post:
+      summary: Create a product watch and versioned mandate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWatchRequest'
+      responses:
+        '201':
+          description: Watch created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Watch'
+        '400':
+          description: Invalid request
+    get:
+      summary: List current user's watches
+      responses:
+        '200':
+          description: Watch list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Watch'
+  /api/watches/{watchId}:
+    parameters:
+      - $ref: '#/components/parameters/WatchId'
+    get:
+      summary: Get watch details
+      responses:
+        '200':
+          description: Watch details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Watch'
+        '404':
+          description: Not found
+  /api/watches/{watchId}/purchase-intents:
+    parameters:
+      - $ref: '#/components/parameters/WatchId'
+    get:
+      summary: List purchase intents for a watch, newest first
+      responses:
+        '200':
+          description: Intent list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PurchaseIntent'
+        '404':
+          description: Watch not found
+  /api/watches/{watchId}/mandate:
+    parameters:
+      - $ref: '#/components/parameters/WatchId'
+    get:
+      summary: Get the active mandate version for a watch
+      description: Revoked mandates remain queryable by id via audit history; this returns the current version.
+      responses:
+        '200':
+          description: Active mandate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mandate'
+        '404':
+          description: Watch not found
+  /api/watches/{watchId}/pause:
+    post:
+      parameters:
+        - $ref: '#/components/parameters/WatchId'
+      summary: Pause future watch processing
+      responses:
+        '200':
+          description: Watch paused
+  /api/watches/{watchId}/revoke:
+    post:
+      parameters:
+        - $ref: '#/components/parameters/WatchId'
+      summary: Revoke future autonomous buying under this watch/mandate
+      responses:
+        '200':
+          description: Future work blocked; in-flight status may require reconciliation
+  /api/watches/kill-switch:
+    post:
+      summary: Emergency Kill Switch to immediately disable all autonomous buying
+      description: Instantly revokes all mandates and watches across the system, halting autonomous purchases.
+      responses:
+        '200':
+          description: Kill switch activated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: REVOKED
+                  revokedWatches:
+                    type: integer
+                    example: 3
+                  revokedMandates:
+                    type: integer
+                    example: 3
+                  message:
+                    type: string
+  /api/watches/{watchId}/offers:
+    post:
+      parameters:
+        - $ref: '#/components/parameters/WatchId'
+      summary: Submit a candidate offer for Guardian evaluation (demo affordance)
+      description: >
+        Stands in for the discovery adapter while Channel3 access is unverified.
+        Validates the offer, persists the purchase intent, runs the Guardian,
+        and atomically reserves budget on ALLOW. The request is the offer the
+        adapter would have produced — it is not a payment instruction.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitOfferRequest'
+      responses:
+        '201':
+          description: Intent created and evaluated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfferEvaluationResponse'
+        '400':
+          description: Invalid offer
+        '404':
+          description: Watch not found
+        '409':
+          description: Watch is not active
+  /api/purchase-intents/{intentId}:
+    parameters:
+      - $ref: '#/components/parameters/IntentId'
+    get:
+      summary: Get purchase intent and current status
+      responses:
+        '200':
+          description: Purchase intent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseIntent'
+        '404':
+          description: Not found
+  /api/purchase-intents/{intentId}/guardian-decision:
+    parameters:
+      - $ref: '#/components/parameters/IntentId'
+    get:
+      summary: Get the Guardian decision bound to this intent
+      description: >
+        Returns the ALLOW/HOLD/BLOCK decision with reason codes, policy and
+        mandate versions, and the evidence hash the decision was evaluated
+        against. A decision is only valid while every bound field still matches
+        the persisted intent.
+      responses:
+        '200':
+          description: Guardian decision
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuardianDecision'
+        '404':
+          description: Intent or decision not found
+  /api/purchase-intents/{intentId}/approve:
+    post:
+      parameters:
+        - $ref: '#/components/parameters/IntentId'
+      summary: Request human approval for a HOLD intent
+      description: Approval must trigger fresh offer and Guardian validation; it never bypasses policy.
+      responses:
+        '202':
+          description: Approval accepted for revalidation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfferEvaluationResponse'
+        '409':
+          description: Intent is not eligible for approval
+  /api/purchase-intents/{intentId}/demo-capture:
+    post:
+      parameters:
+        - $ref: '#/components/parameters/IntentId'
+      summary: Simulated capture for demonstration only (stub mode)
+      description: >
+        Works ONLY when the backend runs with app.payments.mode=stub. The
+        response is always marked simulated and must be presented as such —
+        never as a real PayPal transaction. Returns 409 in any other mode.
+      responses:
+        '200':
+          description: Simulated capture result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DemoCaptureResponse'
+        '409':
+          description: Demo capture disabled or intent not eligible
+  /api/purchase-intents/{intentId}/capture:
+    post:
+      parameters:
+        - $ref: '#/components/parameters/IntentId'
+      summary: Capture intent using active payment adapter (PayPal Sandbox or Stub)
+      description: >
+        Executes order creation and capture against the configured PaymentAdapter.
+        All parameters are derived from the persisted intent and Guardian decision.
+      responses:
+        '200':
+          description: Capture result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DemoCaptureResponse'
+        '409':
+          description: Intent not eligible for capture
+  /api/audit-events:
+    get:
+      summary: List audit events for the authenticated user
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+        - in: query
+          name: eventType
+          schema:
+            type: string
+        - in: query
+          name: correlationId
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Audit events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuditEvent'
+  /api/webhooks/paypal:
+    post:
+      summary: PayPal webhook endpoint
+      description: Must verify provider signature before accepting the event. Configure only verified supported event types.
+      responses:
+        '200':
+          description: Event accepted or already processed
+        '400':
+          description: Invalid or unverifiable event
+components:
+  parameters:
+    WatchId:
+      in: path
+      name: watchId
+      required: true
+      schema:
+        type: string
+        format: uuid
+    IntentId:
+      in: path
+      name: intentId
+      required: true
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    MoneyAmount:
+      type: string
+      pattern: '^(0|[1-9][0-9]*)(\.[0-9]{1,2})?$'
+      description: Decimal money amount as a string; never binary floating-point.
+    CurrencyCode:
+      type: string
+      pattern: '^[A-Z]{3}$'
+    CreateWatchRequest:
+      type: object
+      additionalProperties: false
+      required: [productName, merchantId, currency, targetPrice, maxUnitPrice, maxTotal, maxQuantity]
+      properties:
+        productName:
+          type: string
+          minLength: 1
+          maxLength: 200
+        productId:
+          type: string
+        sku:
+          type: string
+        variant:
+          type: string
+        merchantId:
+          type: string
+          minLength: 1
+        currency:
+          $ref: '#/components/schemas/CurrencyCode'
+        targetPrice:
+          $ref: '#/components/schemas/MoneyAmount'
+        maxUnitPrice:
+          $ref: '#/components/schemas/MoneyAmount'
+        maxTotal:
+          $ref: '#/components/schemas/MoneyAmount'
+        maxQuantity:
+          type: integer
+          minimum: 1
+          maximum: 10
+        allowedMerchantIds:
+          type: array
+          items:
+            type: string
+        requiresHumanApproval:
+          type: boolean
+          default: true
+    Watch:
+      type: object
+      required: [id, productName, merchantId, mandateId, mandateVersion, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        productName:
+          type: string
+        productId:
+          type: string
+        sku:
+          type: string
+        variant:
+          type: string
+        merchantId:
+          type: string
+        mandateId:
+          type: string
+          format: uuid
+        mandateVersion:
+          type: integer
+          minimum: 1
+        currency:
+          $ref: '#/components/schemas/CurrencyCode'
+        targetPrice:
+          $ref: '#/components/schemas/MoneyAmount'
+        status:
+          type: string
+          enum: [ACTIVE, PAUSED, REVOKED]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    Mandate:
+      type: object
+      description: >
+        Versioned spending authority. Mirrors contracts/guardian-policy.schema.json.
+        Any change creates a new version; the payment adapter always checks the
+        version bound to the intent's Guardian decision.
+      required: [id, version, watchId, currency, maxUnitPrice, maxTotal, maxQuantity, allowedMerchantIds, maxPurchasesPerDay, offerMaxAgeSeconds, newMerchantBehavior, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        version:
+          type: integer
+          minimum: 1
+        watchId:
+          type: string
+          format: uuid
+        currency:
+          $ref: '#/components/schemas/CurrencyCode'
+        maxUnitPrice:
+          $ref: '#/components/schemas/MoneyAmount'
+        maxTotal:
+          $ref: '#/components/schemas/MoneyAmount'
+        maxQuantity:
+          type: integer
+          minimum: 1
+          maximum: 10
+        allowedMerchantIds:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+            minLength: 1
+        maxPurchasesPerDay:
+          type: integer
+          minimum: 0
+        offerMaxAgeSeconds:
+          type: integer
+          minimum: 1
+        newMerchantBehavior:
+          type: string
+          enum: [HOLD, BLOCK]
+        requireHumanApprovalAbove:
+          $ref: '#/components/schemas/MoneyAmount'
+        allowedCategories:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+        maxWeeklySpend:
+          $ref: '#/components/schemas/MoneyAmount'
+        status:
+          type: string
+          enum: [ACTIVE, REVOKED]
+        createdAt:
+          type: string
+          format: date-time
+        revokedAt:
+          type: string
+          format: date-time
+    GuardianDecisionReasonCode:
+      type: string
+      enum: [WITHIN_POLICY, BELOW_TARGET_PRICE, PRICE_ABOVE_MAX_TOTAL, UNIT_PRICE_ABOVE_CAP, MERCHANT_NOT_ALLOWLISTED, QUANTITY_MISMATCH, CURRENCY_MISMATCH, STALE_OFFER, INCOMPLETE_EVIDENCE, MANDATE_REVOKED, MANDATE_EXPIRED, BUDGET_EXHAUSTED, VELOCITY_EXCEEDED, APPROVAL_REQUIRED, POLICY_VERSION_MISMATCH, SERVICE_ERROR, PRODUCT_IDENTITY_UNCERTAIN, NEW_MERCHANT_HOLD]
+    GuardianDecision:
+      type: object
+      description: >
+        The exact-parameter approval binding. An ALLOW is valid only for the
+        intent, mandate version, merchant, SKU/variant, quantity, currency,
+        totals, evidence hash and policy version recorded here, and only until
+        expiresAt. Any change requires fresh evaluation.
+      required: [id, intentId, mandateId, mandateVersion, decision, reasonCodes, policyVersion, evidenceHash, evaluatedAt, expiresAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        intentId:
+          type: string
+          format: uuid
+        mandateId:
+          type: string
+          format: uuid
+        mandateVersion:
+          type: integer
+          minimum: 1
+        decision:
+          type: string
+          enum: [ALLOW, HOLD, BLOCK]
+        reasonCodes:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/GuardianDecisionReasonCode'
+        policyVersion:
+          type: string
+          minLength: 1
+        evidenceHash:
+          type: string
+          minLength: 1
+          description: Hash of the exact offer evidence the decision was evaluated against.
+        evaluatedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+    OfferSnapshot:
+      type: object
+      description: Normalized candidate offer with source evidence, as validated before Guardian evaluation.
+      required: [id, merchantId, currency, quantity, unitPrice, totalPrice, observedAt, source, evidenceHash]
+      properties:
+        id:
+          type: string
+          format: uuid
+        merchantId:
+          type: string
+        canonicalSku:
+          type: string
+        variant:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+        currency:
+          $ref: '#/components/schemas/CurrencyCode'
+        unitPrice:
+          $ref: '#/components/schemas/MoneyAmount'
+        totalPrice:
+          $ref: '#/components/schemas/MoneyAmount'
+        observedAt:
+          type: string
+          format: date-time
+        source:
+          type: string
+          description: Adapter that produced the offer (e.g. channel3, fixture).
+        evidenceHash:
+          type: string
+          minLength: 1
+    PurchaseIntent:
+      type: object
+      description: >
+        Durable purchase intent and state machine. The payment adapter may act
+        only on an intent whose persisted fields exactly match a current,
+        unexpired Guardian ALLOW bound to the same mandate version, policy
+        version and evidence hash.
+      required: [id, watchId, mandateId, mandateVersion, status, merchantId, currency, quantity, maxTotal, idempotencyKey, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        watchId:
+          type: string
+          format: uuid
+        mandateId:
+          type: string
+          format: uuid
+        mandateVersion:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          enum: [CREATED, OFFER_VALIDATED, GUARDIAN_EVALUATED, AWAITING_APPROVAL, SPEND_RESERVED, ORDER_CREATE_PENDING, ORDER_CREATED, CAPTURE_PENDING, CAPTURED, FAILED, RECONCILIATION_REQUIRED, CANCELLED, REFUND_PENDING, REFUNDED, EXPIRED, BLOCKED]
+        merchantId:
+          type: string
+        canonicalSku:
+          type: string
+        variant:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+        currency:
+          $ref: '#/components/schemas/CurrencyCode'
+        maxTotal:
+          $ref: '#/components/schemas/MoneyAmount'
+        guardianDecisionId:
+          type: string
+          format: uuid
+          description: Present once Guardian has evaluated this intent.
+        policyVersion:
+          type: string
+          description: Policy version the bound Guardian decision used.
+        evidenceHash:
+          type: string
+          description: Evidence hash the bound Guardian decision was evaluated against.
+        offerSnapshot:
+          $ref: '#/components/schemas/OfferSnapshot'
+        idempotencyKey:
+          type: string
+          minLength: 1
+          description: Stable key reused for provider retries; one logical purchase, one key.
+        providerOrderId:
+          type: string
+          description: Provider-issued order id, persisted after the call, never invented.
+        failureReason:
+          type: string
+          description: Provider-confirmed failure reason; never a guess for unknown outcomes.
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AuditEvent:
+      type: object
+      description: Append-only audit record with secrets redacted.
+      required: [id, eventType, correlationId, occurredAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+        entityType:
+          type: string
+        entityId:
+          type: string
+        correlationId:
+          type: string
+        reasonCodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/GuardianDecisionReasonCode'
+        policyVersion:
+          type: string
+        summary:
+          type: string
+        occurredAt:
+          type: string
+          format: date-time
+    InfoResponse:
+      type: object
+      required: [name, version, paymentsMode, discoveryMode]
+      properties:
+        name:
+          type: string
+          example: buybound
+        version:
+          type: string
+          example: 0.4.0
+        paymentsMode:
+          type: string
+          enum: [sandbox, stub]
+          description: stub enables the clearly-labelled simulated payment adapter only
+        discoveryMode:
+          type: string
+          enum: [fixture, channel3]
+    EvaluationRequest:
+      type: object
+      required: [policy, offer]
+      properties:
+        policy:
+          type: object
+          required: [mandateId, version, currency, maxUnitPrice, maxTotal, maxQuantity, allowedMerchantIds, maxPurchasesPerDay, offerMaxAgeSeconds, newMerchantBehavior, policyVersion]
+          properties:
+            mandateId: { type: string }
+            version: { type: integer, minimum: 1 }
+            currency: { $ref: '#/components/schemas/CurrencyCode' }
+            maxUnitPrice: { $ref: '#/components/schemas/MoneyAmount' }
+            maxTotal: { $ref: '#/components/schemas/MoneyAmount' }
+            maxQuantity: { type: integer, minimum: 1 }
+            allowedMerchantIds: { type: array, items: { type: string } }
+            maxPurchasesPerDay: { type: integer, minimum: 0 }
+            offerMaxAgeSeconds: { type: integer, minimum: 1 }
+            newMerchantBehavior: { type: string, enum: [HOLD, BLOCK] }
+            requireHumanApprovalAbove: { $ref: '#/components/schemas/MoneyAmount' }
+            maxWeeklySpend: { $ref: '#/components/schemas/MoneyAmount' }
+            targetPrice: { $ref: '#/components/schemas/MoneyAmount' }
+            policyVersion: { type: string }
+            mandateStatus: { type: string, enum: [ACTIVE, REVOKED], default: ACTIVE }
+        offer:
+          type: object
+          required: [merchantId, quantity, currency, unitPrice, totalPrice, observedAt]
+          properties:
+            merchantId: { type: string }
+            canonicalSku: { type: string }
+            variant: { type: string }
+            quantity: { type: integer, minimum: 1 }
+            currency: { $ref: '#/components/schemas/CurrencyCode' }
+            unitPrice: { $ref: '#/components/schemas/MoneyAmount' }
+            totalPrice: { $ref: '#/components/schemas/MoneyAmount' }
+            observedAt: { type: string, format: date-time }
+            source: { type: string }
+            evidenceHash: { type: string }
+        context:
+          type: object
+          properties:
+            purchasesToday: { type: integer, minimum: 0 }
+            remainingBudget: { $ref: '#/components/schemas/MoneyAmount' }
+            now: { type: string, format: date-time }
+    EvaluationResponse:
+      type: object
+      required: [decision, reasonCodes, policyVersion, evaluatedAt, expiresAt]
+      properties:
+        decision: { type: string, enum: [ALLOW, HOLD, BLOCK] }
+        reasonCodes:
+          type: array
+          items: { $ref: '#/components/schemas/GuardianDecisionReasonCode' }
+        policyVersion: { type: string }
+        evaluatedAt: { type: string, format: date-time }
+        expiresAt: { type: string, format: date-time }
+    SubmitOfferRequest:
+      type: object
+      required: [merchantId, quantity, currency, unitPrice, totalPrice]
+      properties:
+        merchantId: { type: string }
+        canonicalSku: { type: string }
+        variant: { type: string }
+        quantity: { type: integer, minimum: 1 }
+        currency: { $ref: '#/components/schemas/CurrencyCode' }
+        unitPrice: { $ref: '#/components/schemas/MoneyAmount' }
+        totalPrice: { $ref: '#/components/schemas/MoneyAmount' }
+        source: { type: string }
+    OfferEvaluationResponse:
+      type: object
+      required: [intent, decision]
+      properties:
+        intent: { $ref: '#/components/schemas/PurchaseIntent' }
+        decision: { $ref: '#/components/schemas/GuardianDecision' }
+    DemoCaptureResponse:
+      type: object
+      required: [intentId, status, simulated, providerReference, message]
+      properties:
+        intentId: { type: string, format: uuid }
+        status: { type: string }
+        simulated:
+          type: boolean
+          description: Always true. This is not a real PayPal transaction.
+        providerReference: { type: string }
+        message: { type: string }

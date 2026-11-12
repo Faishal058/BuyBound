@@ -1,0 +1,169 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    scroll-behavior: smooth;
+    color-scheme: light;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-text);
+    -webkit-font-smoothing: antialiased;
+    margin: 0;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  /* High-contrast visible keyboard focus ring */
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Prevent underlying page scroll while native modal <dialog> is open */
+  dialog:modal {
+    overscroll-behavior: contain;
+  }
+
+  dialog::backdrop {
+    overflow: hidden;
+    overscroll-behavior: contain;
+    background: rgb(41 39 36 / 0.45);
+    backdrop-filter: blur(4px);
+  }
+}
+
+@layer components {
+  .page-shell {
+    width: min(94vw, 1440px);
+    margin-inline: auto;
+    padding-inline: clamp(16px, 3.5vw, 48px);
+  }
+
+  .section-pad {
+    padding-block: clamp(44px, 5.5vw, 84px);
+  }
+
+  /* Visually hidden utility for skip links and screen-reader helpers */
+  .visually-hidden:where(:not(:focus-within, :active)) {
+    position: absolute !important;
+    clip-path: inset(50%) !important;
+    overflow: hidden !important;
+    width: 1px !important;
+    height: 1px !important;
+    margin: -1px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  .skip-link {
+    position: fixed;
+    inset-block-start: 0.75rem;
+    inset-inline-start: 0.75rem;
+    z-index: 60;
+    border-radius: var(--radius-sm);
+    background: var(--color-text);
+    color: #ffffff;
+    padding: 0.5rem 0.875rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  /* AG Grid Quartz styled with BuyBound Ivory / Coral / Warm Border tokens */
+  .ag-theme-quartz {
+    --ag-background-color: var(--color-surface);
+    --ag-header-background-color: var(--color-surface-muted);
+    --ag-border-color: var(--color-border);
+    --ag-row-hover-color: var(--color-accent-light);
+    --ag-selected-row-background-color: var(--color-primary-light);
+    --ag-header-foreground-color: var(--color-text-muted);
+    --ag-foreground-color: var(--color-text);
+    --ag-font-family: var(--font-sans);
+    --ag-font-size: 13px;
+    --ag-header-height: 44px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  /* Isolate heavy AG Grid layout/paint work */
+  .ag-studio-panel {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 900px auto 480px;
+  }
+
+  @supports not (content-visibility: auto) {
+    .ag-studio-panel {
+      contain: layout style paint;
+    }
+  }
+
+  /* Non-color-only active tab underline using pseudo-element border */
+  .bb-tab {
+    position: relative;
+  }
+
+  .bb-tab[aria-selected='true']::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0;
+    border-block-end: 3px solid var(--color-primary);
+  }
+
+  /* Non-color-only active page highlight inside top app navigation */
+  .bb-nav-link {
+    position: relative;
+  }
+
+  .bb-nav-link[aria-current='page'] {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+    border-color: rgb(241 107 80 / 0.25);
+  }
+
+  .mono {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (forced-colors: active) {
+  .bb-tab[aria-selected='true']::after {
+    border-block-end-color: Highlight;
+  }
+  .bb-nav-link[aria-current='page'] {
+    outline: 2px solid Highlight;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .animate-float-slow,
+  .animate-float-delayed,
+  .animate-float-fast,
+  .animate-ping {
+    animation: none !important;
+  }
+}
+
+@media print {
+  header,
+  nav,
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #ffffff;
+  }
+}

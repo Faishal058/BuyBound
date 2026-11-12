@@ -1,0 +1,43 @@
+# Secrets and environment
+.env
+.env.*
+env
+!.env.example
+*.pem
+*.key
+secrets/
+credentials/
+
+# Java
+target/
+**/target/
+backend/target/
+*.class
+*.log
+
+# Node
+node_modules/
+**/node_modules/
+frontend/node_modules/
+dist/
+**/dist/
+frontend/dist/
+.vite/
+**/.vite/
+.vite-temp/
+**/.vite-temp/
+build/
+coverage/
+
+# AI agent skills / local tooling
+.agents/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local data
+postgres-data/
+*.dump

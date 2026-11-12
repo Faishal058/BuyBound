@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: buybound-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: buybound
+      POSTGRES_USER: buybound
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-change_me_locally}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U buybound -d buybound"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: buybound-backend
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/buybound
+      DATABASE_USERNAME: buybound
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-change_me_locally}
+      PAYMENTS_MODE: ${PAYMENTS_MODE:-sandbox}
+      PAYPAL_BASE_URL: ${PAYPAL_BASE_URL:-https://api-m.sandbox.paypal.com}
+      PAYPAL_CLIENT_ID: ${PAYPAL_CLIENT_ID:-}
+      PAYPAL_CLIENT_SECRET: ${PAYPAL_CLIENT_SECRET:-}
+      PAYPAL_WEBHOOK_ID: ${PAYPAL_WEBHOOK_ID:-}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres-data:

@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  // NOTE: vite.config.ts is intentionally excluded — it is tooling configuration,
+  // not application code. Vitest/Vite ship their own nested Vite copy whose
+  // plugin types conflict with the top-level vite types under tsc; esbuild
+  // (used by `vite build` / `vitest`) strips types without checking, so the
+  // config still works at runtime. See FRONTEND_STRUCTURE.md.
+  "include": ["src"]
+}
