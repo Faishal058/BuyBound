@@ -5,6 +5,7 @@ import { Spinner } from '../components/ui/Spinner';
 import { useAuth } from '../context/authState';
 import { AuditPage } from '../features/audit/pages/AuditPage';
 import { AuthPage } from '../features/auth/pages/AuthPage';
+import { PayPalOAuthCallbackPage } from '../features/auth/pages/PayPalOAuthCallbackPage';
 import { IntentDetailPage } from '../features/intents/pages/IntentDetailPage';
 import { LandingPage } from '../features/landing/pages/LandingPage';
 import { OffersPage } from '../features/offers/pages/OffersPage';
@@ -58,6 +59,8 @@ export function AppRoutes() {
       <Route path="/login" element={<AuthPage initialTab="signin" />} />
       <Route path="/signup" element={<AuthPage initialTab="signup" />} />
       <Route path="/auth" element={<AuthPage />} />
+      <Route path="/auth/callback" element={<PayPalOAuthCallbackPage />} />
+      <Route path="/paypal/callback" element={<PayPalOAuthCallbackPage />} />
 
       <Route element={<RequireAuth />}>
         {/* Primary consumer fintech workflow */}

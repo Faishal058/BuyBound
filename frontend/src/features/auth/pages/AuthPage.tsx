@@ -407,10 +407,10 @@ export function AuthPage({ initialTab = 'signin' }: AuthPageProps) {
               </button>
             </div>
 
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#0070BA]/25 bg-[#0070BA]/10 px-3 py-1">
-              <span className="h-2 w-2 rounded-full bg-[#0070BA]" aria-hidden="true" />
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#0070BA]">
-                PayPal Sandbox Authentication
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-black/10 bg-black/5 px-3 py-1">
+              <span className="h-2 w-2 rounded-full bg-brand-coral" aria-hidden="true" />
+              <span className="text-[11px] font-bold uppercase tracking-wider text-brand-charcoal">
+                BuyBound Demo · PayPal AI Hackathon
               </span>
             </div>
 
@@ -419,8 +419,8 @@ export function AuthPage({ initialTab = 'signin' }: AuthPageProps) {
             </h2>
             <p className="text-sm text-brand-charcoal-muted mt-1.5 mb-5">
               {activeTab === 'signin'
-                ? 'Sign in with your registered email and password, or continue directly with your live PayPal Sandbox account.'
-                : 'Register with your name, email, and password to manage price watches, PayPal connections, and verified orders.'}
+                ? 'Sign in with your BuyBound demo account or connect securely via PayPal Sandbox OAuth.'
+                : 'Register a demo account to manage price watches, simulated drop alerts, and orders.'}
             </p>
 
             {errorMsg && (
@@ -446,7 +446,7 @@ export function AuthPage({ initialTab = 'signin' }: AuthPageProps) {
             <div className="relative my-4 flex items-center">
               <div className="flex-grow border-t border-brand-border" />
               <span className="mx-3 shrink text-[11px] font-semibold uppercase tracking-wider text-brand-charcoal-muted">
-                or use BuyBound credentials
+                or sign in with demo credentials
               </span>
               <div className="flex-grow border-t border-brand-border" />
             </div>

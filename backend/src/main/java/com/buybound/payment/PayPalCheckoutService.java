@@ -174,7 +174,7 @@ public class PayPalCheckoutService {
         .orElse(configuredClientId != null ? configuredClientId : "");
     boolean configured = payPalAdapter.map(PayPalPaymentAdapter::isConfigured)
         .orElse(!clientId.isBlank());
-    String redirectUri = frontendUrl + "/login?paypal_oauth=true";
+    String redirectUri = frontendUrl + "/auth/callback?paypal_oauth=true";
     String oauthUrl = clientId.isBlank()
         ? ""
         : "https://www.sandbox.paypal.com/signin/authorize?client_id="
@@ -216,7 +216,7 @@ public class PayPalCheckoutService {
       throw new ConflictException("PayPal Sandbox credentials are missing. Check PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET.");
     }
     PayPalPaymentAdapter.VaultSetupResult setup =
-        pp.createSetupTokenWithLinks("/login?paypal_vault_login=true", "/login?paypal_cancelled=true");
+        pp.createSetupTokenWithLinks("/auth/callback?paypal_vault_login=true", "/login?paypal_cancelled=true");
     if (setup.setupTokenId() == null || setup.approvalUrl() == null || setup.approvalUrl().isBlank()) {
       throw new ConflictException(setup.message());
     }
